@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Ошибка без URL",
+      "method": "POST",
+      "path": "/",
+      "body": {},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "URL обязателен"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Парсинг F-Droid",
+      "method": "POST",
+      "path": "/",
+      "body": {"url": "https://f-droid.org/packages/org.videolan.vlc"},
+      "expectedStatus": 200,
+      "expectedBody": {"ok": true},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

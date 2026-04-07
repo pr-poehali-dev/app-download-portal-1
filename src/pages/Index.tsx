@@ -1,6 +1,8 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 
+const PARSE_APK_URL = "https://functions.poehali.dev/fc1e3d06-9e20-4633-977b-165ba595ec03";
+
 type TabType = "search" | "downloads" | "library";
 
 interface ApkVersion {
@@ -113,12 +115,15 @@ export default function Index() {
   const [showFavorites, setShowFavorites] = useState(false);
   const [fetching, setFetching] = useState(false);
 
-  const handleAddUrl = () => {
+  const handleAddUrl = async () => {
     if (!url.trim()) return;
+    const downloadId = Date.now().toString();
+    const inputUrl = url.trim();
+
     const newDownload: Download = {
-      id: Date.now().toString(),
-      name: url.split("/").pop() || "Приложение",
-      url: url.trim(),
+      id: downloadId,
+      name: inputUrl.split("/").filter(Boolean).pop() || "Приложение",
+      url: inputUrl,
       progress: 0,
       status: "fetching",
     };
@@ -127,14 +132,59 @@ export default function Index() {
     setFetching(true);
     setActiveTab("downloads");
 
-    setTimeout(() => {
+    try {
+      const res = await fetch(PARSE_APK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: inputUrl }),
+      });
+      const json = await res.json();
+
+      if (json.ok && json.data) {
+        const { name, version, size, source } = json.data;
+        setDownloads((prev) =>
+          prev.map((d) =>
+            d.id === downloadId
+              ? {
+                  ...d,
+                  name: name || d.name,
+                  version: version || undefined,
+                  size: size || undefined,
+                  status: "downloading",
+                  progress: 20,
+                }
+              : d
+          )
+        );
+
+        // Simulate download progress
+        let progress = 20;
+        const interval = setInterval(() => {
+          progress += Math.floor(Math.random() * 12) + 4;
+          if (progress >= 100) {
+            progress = 100;
+            clearInterval(interval);
+            setDownloads((prev) =>
+              prev.map((d) => (d.id === downloadId ? { ...d, progress: 100, status: "done" } : d))
+            );
+          } else {
+            setDownloads((prev) =>
+              prev.map((d) => (d.id === downloadId ? { ...d, progress } : d))
+            );
+          }
+        }, 600);
+      } else {
+        setDownloads((prev) =>
+          prev.map((d) => (d.id === downloadId ? { ...d, status: "error" } : d))
+        );
+      }
+    } catch {
       setDownloads((prev) =>
-        prev.map((d) =>
-          d.id === newDownload.id ? { ...d, status: "downloading", progress: 15 } : d
-        )
+        prev.map((d) => (d.id === downloadId ? { ...d, status: "error" } : d))
       );
+    } finally {
       setFetching(false);
-    }, 1500);
+    }
   };
 
   const toggleFavorite = (id: string) => {
