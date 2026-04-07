@@ -52,10 +52,30 @@ export default function Index() {
   const [downloads, setDownloads] = useState<Download[]>([]);
   const [files, setFiles] = useState<ApkFile[]>([]);
   const [expandedFile, setExpandedFile] = useState<string | null>(null);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showFavorites, setShowFavorites] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const downloadToPhone = (url: string, name: string) => {
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name.endsWith(".apk") ? name : `${name}.apk`;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setOpenMenu(null);
+  };
+
+  useEffect(() => {
+    if (!openMenu) return;
+    const close = () => setOpenMenu(null);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [openMenu]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -404,13 +424,42 @@ export default function Index() {
                         </div>
                         <p className="text-xs text-zinc-400 font-mono truncate">{file.package_name || file.source}</p>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-1 flex-shrink-0">
                         <button
                           onClick={(e) => { e.stopPropagation(); toggleFavorite(file.id); }}
-                          className={`transition-colors ${file.is_favorite ? "text-zinc-900" : "text-zinc-200 hover:text-zinc-400"}`}
+                          className={`p-1 transition-colors ${file.is_favorite ? "text-zinc-900" : "text-zinc-200 hover:text-zinc-400"}`}
                         >
                           <Icon name="Star" size={14} />
                         </button>
+                        <div className="relative">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setOpenMenu(openMenu === file.id ? null : file.id); }}
+                            className="p-1 text-zinc-300 hover:text-zinc-600 transition-colors"
+                          >
+                            <Icon name="MoreHorizontal" size={16} />
+                          </button>
+                          {openMenu === file.id && (
+                            <div
+                              className="absolute right-0 top-7 z-20 bg-white border border-zinc-200 rounded-lg shadow-lg py-1 min-w-[170px] animate-fade-in"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <button
+                                onClick={() => downloadToPhone(file.url, file.name)}
+                                className="flex items-center gap-2.5 w-full px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-50 transition-colors"
+                              >
+                                <Icon name="Smartphone" size={13} className="text-zinc-400" />
+                                Скачать на телефон
+                              </button>
+                              <button
+                                onClick={() => { window.open(file.url, "_blank"); setOpenMenu(null); }}
+                                className="flex items-center gap-2.5 w-full px-3 py-2 text-xs text-zinc-700 hover:bg-zinc-50 transition-colors"
+                              >
+                                <Icon name="ExternalLink" size={13} className="text-zinc-400" />
+                                Открыть источник
+                              </button>
+                            </div>
+                          )}
+                        </div>
                         <Icon
                           name="ChevronDown"
                           size={14}
