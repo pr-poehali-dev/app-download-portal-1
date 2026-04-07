@@ -1,0 +1,46 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "get_files — список файлов",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "get_files"},
+      "expectedStatus": 200,
+      "expectedBody": {"files": []},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "get_downloads — список загрузок",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "get_downloads"},
+      "expectedStatus": 200,
+      "expectedBody": {"downloads": []},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "add_download — добавить загрузку",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "add_download", "name": "Test App", "url": "https://example.com/test.apk"},
+      "expectedStatus": 200,
+      "expectedBody": {"ok": true},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "add_file — добавить файл",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "add_file", "name": "Test App", "packageName": "com.test.app", "version": "1.0.0", "size": "10 МБ", "source": "test.com", "url": "https://example.com/test.apk"},
+      "expectedStatus": 200,
+      "expectedBody": {"ok": true},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
