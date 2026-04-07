@@ -492,11 +492,15 @@ export default function Index() {
                                     {v.notes && <span className="text-xs text-zinc-400">{v.notes}</span>}
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-4 text-xs text-zinc-400">
+                                <div className="flex items-center gap-3 text-xs text-zinc-400">
                                   {v.size && <span className="font-mono">{v.size}</span>}
                                   {v.date && <span>{v.date}</span>}
-                                  <button className="text-zinc-300 hover:text-zinc-700 transition-colors">
-                                    <Icon name="Download" size={12} />
+                                  <button
+                                    title="Скачать на телефон"
+                                    onClick={(e) => { e.stopPropagation(); downloadToPhone(file.url, `${file.name}-v${v.version}`); }}
+                                    className="flex items-center gap-1 text-zinc-300 hover:text-zinc-900 transition-colors group"
+                                  >
+                                    <Icon name="Smartphone" size={12} className="group-hover:scale-110 transition-transform" />
                                   </button>
                                 </div>
                               </div>
